@@ -126,37 +126,9 @@ RUN mkdir /workdir/.cache && \
         python3.8 --version; \
     fi
 
-# Download sdk-nrf and west dependencies to install pip requirements
-FROM base
-ARG sdk_nrf_revision=main
-RUN \
-    west init -m https://github.com/nrfconnect/sdk-nrf --mr ${sdk_nrf_revision} && \
-    west update --narrow -o=--depth=1 && \
-    echo "Installing requirements: zephyr/scripts/requirements.txt" && \
-    python3 -m pip install -r zephyr/scripts/requirements.txt && \
-    case $sdk_nrf_revision in \
-        "v1.4-branch") \
-            echo "Installing requirements: nrf/scripts/requirements.txt" && \
-            python3 -m pip install -r nrf/scripts/requirements.txt \
-        ;; \
-        *) \
-            # Install only the requirements needed for building firmware, not documentation
-            echo "Installing requirements: nrf/scripts/requirements-base.txt" && \
-            python3 -m pip install -r nrf/scripts/requirements-base.txt && \
-            echo "Installing requirements: nrf/scripts/requirements-build.txt" && \
-            python3 -m pip install -r nrf/scripts/requirements-build.txt \
-        ;; \
-    esac && \
-    echo "Installing requirements: bootloader/mcuboot/scripts/requirements.txt" && \
-    python3 -m pip install -r bootloader/mcuboot/scripts/requirements.txt
 
-RUN mkdir /workdir/project
-
-WORKDIR /workdir/project
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 ENV XDG_CACHE_HOME=/workdir/.cache
 ENV ZEPHYR_TOOLCHAIN_VARIANT=zephyr
 ENV ZEPHYR_SDK_INSTALL_DIR=/workdir/zephyr-sdk
-ENV ZEPHYR_BASE=/workdir/zephyr
-ENV PATH="${ZEPHYR_BASE}/scripts:${PATH}"
